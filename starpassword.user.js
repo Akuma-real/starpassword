@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name              星号密码显示助手
 // @namespace         https://github.com/syhyz1990/starpassword
-// @version           1.0.9
+// @version           1.1.0
 // @author            YouXiaoHou
 // @description       当鼠标停留在密码框时显示星号密码。再也不担心忘记密码和输错密码了。
 // @match             *://*/*
@@ -39,7 +39,35 @@
             let style = doc.createElement(tag);
             style.rel = 'stylesheet';
             style.id = id;
-            tag === 'style' ? style.innerHTML = css : style.href = css;
+            // 移除已弃用的-ms-high-contrast相关CSS，使用新的强制颜色模式标准
+            if (tag === 'style') {
+                css = css.replace(/-ms-high-contrast:\s*[^;]+;?/g, '');
+                css = css.replace(/@media\s+\(-ms-high-contrast:\s*[^)]+\)\s*{[^}]*}/g, '');
+                // 添加新的强制颜色模式支持
+                if (css.includes('high-contrast') || css.includes('contrast')) {
+                    css += `
+                    @media (forced-colors: active) {
+                        .starpassword-container { 
+                            forced-color-adjust: none;
+                            background-color: Canvas;
+                            color: CanvasText;
+                            border-color: ButtonBorder;
+                        }
+                        .starpassword-popup {
+                            background-color: Canvas;
+                            color: CanvasText;
+                        }
+                        .starpassword-select {
+                            background-color: Field;
+                            color: FieldText;
+                            border-color: ButtonBorder;
+                        }
+                    }`;
+                }
+                style.innerHTML = css;
+            } else {
+                style.href = css;
+            }
             document.head.appendChild(style);
         },
     };
